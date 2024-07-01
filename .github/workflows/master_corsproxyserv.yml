@@ -21,12 +21,15 @@ jobs:
 
       - name: Install dependencies, build, and test
         run: |
+          cd cors-proxy
           npm install
           npm run build --if-present
           npm run test --if-present
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip .
+        run: |
+          cd cors-proxy
+          zip -r ../release.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -41,7 +44,7 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write # This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
@@ -64,5 +67,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'CorsProxyServ'
-          slot-name: 'Production'
           package: .
