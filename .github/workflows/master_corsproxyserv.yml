@@ -1,7 +1,10 @@
-name: Build and deploy Node.js app to Azure Web App - CorsProxyServ
+name: Build and Deploy Node.js App to Azure
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
   workflow_dispatch:
@@ -9,27 +12,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    name: Build Job
     steps:
-      - name: Checkout code
+      - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: List files in root directory
+        run: ls -al
+
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: '20'
 
-      - name: Install dependencies, build, and test
-        run: |
-          cd cors-proxy
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+      - name: List files after Node setup
+        run: ls -al
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Check Node.js version
+        run: node -v
+
+      - name: Check npm version
+        run: npm -v
+
+      - name: Build the project
+        run: npm run build
+
+      - name: Verify build output
+        run: ls -al build
 
       - name: Zip artifact for deployment
-        run: |
-          cd cors-proxy
-          zip -r ../release.zip .
+        run: zip -r release.zip build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -42,9 +57,8 @@ jobs:
     needs: build
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write # This is required for requesting the JWT
+      id-token: write
 
     steps:
       - name: Download artifact from build job
@@ -55,16 +69,23 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A77FCF44D1E0422795708C9FC2579F12 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_650B9659DC124BCFA9F1AB4709411B99 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_86F4BE42593A4EE7A753A445712CB5AC }}
+      - name: List files for debugging
+        run: ls -al build
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+      - name: Login to Azure
+        run: |
+          az login --service-principal -u "41aed552-942e-4e2b-984a-e9207b0fd89d" -p "ubn8Q~AMTTvcdi~Xkli9WBIwDzgeGNhINFa.3cme" --tenant "5e98bbb4-4a0c-4dae-8254-dcaa73b41da8"
+
+      
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
         with:
-          app-name: 'CorsProxyServ'
-          package: .
+          app-name: RaspiWebApp
+          package: release.zip
+
+      - name: Check App Service Logs
+        run: |
+          curl -u "41aed552-942e-4e2b-984a-e9207b0fd89d:ubn8Q~AMTTvcdi~Xkli9WBIwDzgeGNhINFa.3cme" "https://RaspiWebApp.scm.azurewebsites.net/api/logs/docker" -o docker.log
+
+      - name: Display Log File
+        run: cat docker.log
