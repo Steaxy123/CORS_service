@@ -4,12 +4,11 @@
   "description": "A CORS proxy server built with Node.js and Express.",
   "main": "index.js",
   "scripts": {
-  "start": "node index.js",
-  "test": "echo \"No tests specified\""
-  }
-  
+    "start": "node index.js",
+    "test": "echo \"No tests specified\""
+  },
   "keywords": ["CORS", "proxy", "Node.js", "Express"],
-  "author": "Fp",
+  "author": "Ihr Name",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.2",
