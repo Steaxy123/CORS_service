@@ -1,0 +1,17 @@
+{
+  "name": "cors-proxy",
+  "version": "1.0.0",
+  "description": "A CORS proxy server built with Node.js and Express.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["CORS", "proxy", "Node.js", "Express"],
+  "author": "Fp",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "express": "^4.19.2"
+  }
+}
